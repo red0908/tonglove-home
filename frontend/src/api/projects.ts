@@ -9,6 +9,9 @@ export const projectsApi = {
     apiClient.get<Project>(`/projects/${slug}`).then((r) => r.data),
 
   // 管理接口
+  listAll: (params?: { page?: number; page_size?: number }) =>
+    apiClient.get<PaginatedResponse<Project>>('/admin/projects', { params }).then((r) => r.data),
+
   create: (data: Partial<Project>) =>
     apiClient.post<Project>('/admin/projects', data).then((r) => r.data),
 

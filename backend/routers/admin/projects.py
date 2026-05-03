@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List
+import math
 
 from database import get_db
 from auth import get_current_user
@@ -9,9 +9,20 @@ import models, schemas
 router = APIRouter(prefix="/admin/projects", tags=["admin-projects"])
 
 
-@router.get("", response_model=List[schemas.ProjectOut])
-def list_all(db: Session = Depends(get_db), _=Depends(get_current_user)):
-    return db.query(models.Project).order_by(models.Project.sort_order.desc()).all()
+@router.get("", response_model=schemas.PaginatedResponse[schemas.ProjectOut])
+def list_all(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=100),
+    db: Session = Depends(get_db),
+    _=Depends(get_current_user),
+):
+    query = db.query(models.Project).order_by(models.Project.sort_order.desc())
+    total = query.count()
+    items = query.offset((page - 1) * page_size).limit(page_size).all()
+    return schemas.PaginatedResponse(
+        items=items, total=total, page=page, page_size=page_size,
+        total_pages=math.ceil(total / page_size) if total > 0 else 1,
+    )
 
 
 @router.post("", response_model=schemas.ProjectOut, status_code=201)

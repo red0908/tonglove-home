@@ -8,7 +8,7 @@ import { formatDate } from '@/utils'
 import type { Post } from '@/types'
 
 export function AdminPosts() {
-  const fetchPosts = useCallback(() => postsApi.list({ page_size: 50 }), [])
+  const fetchPosts = useCallback(() => postsApi.listAll({ page_size: 50 }), [])
   const { data, loading, error, execute } = useAsync(fetchPosts)
 
   const [modalOpen, setModalOpen] = useState(false)

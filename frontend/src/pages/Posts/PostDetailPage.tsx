@@ -1,6 +1,8 @@
 import { useCallback, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Clock, Eye, Send } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { Badge, Button, ErrorMessage, PageLoader } from '@/components/ui'
 import { commentsApi, postsApi } from '@/api'
 import { useAsync } from '@/hooks'
@@ -59,7 +61,7 @@ export function PostDetailPage() {
 
       {/* Content */}
       <article className="prose prose-gray mt-8 max-w-none">
-        <p className="whitespace-pre-wrap text-gray-700">{post.content}</p>
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
       </article>
 
       {/* Comment Form */}

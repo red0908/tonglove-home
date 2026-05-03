@@ -38,7 +38,7 @@ export function AboutPage() {
           <span className="text-5xl font-bold text-white">张</span>
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">张润桐</h1>
+          <h1 className="text-3xl font-bold text-gray-900">彤爱</h1>
           <p className="mt-1 text-lg text-primary-600 font-medium">全栈 AI 开发工程师</p>
           <p className="mt-3 text-gray-600 leading-relaxed max-w-xl">
             8年全栈经验，2年专注AI工程落地。拥有3项AI相关发明专利，在语音质检、智能客服、多智能体决策等方向有丰富实践。

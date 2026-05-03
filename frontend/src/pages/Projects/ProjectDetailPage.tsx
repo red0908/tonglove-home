@@ -1,6 +1,8 @@
 import { useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Award, Bot } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { Badge, Button, ErrorMessage, PageLoader } from '@/components/ui'
 import { projectsApi } from '@/api'
 import { useAsync } from '@/hooks'
@@ -71,7 +73,7 @@ export function ProjectDetailPage() {
 
       {/* Content */}
       <div className="prose prose-gray mt-10 max-w-none">
-        <p className="whitespace-pre-wrap text-gray-700">{project.content}</p>
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{project.content}</ReactMarkdown>
       </div>
 
       {/* AI Demo CTA */}

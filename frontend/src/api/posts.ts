@@ -9,6 +9,9 @@ export const postsApi = {
     apiClient.get<Post>(`/posts/${slug}`).then((r) => r.data),
 
   // 管理接口
+  listAll: (params?: { page?: number; page_size?: number }) =>
+    apiClient.get<PaginatedResponse<Post>>('/admin/posts', { params }).then((r) => r.data),
+
   create: (data: Partial<Post>) =>
     apiClient.post<Post>('/admin/posts', data).then((r) => r.data),
 

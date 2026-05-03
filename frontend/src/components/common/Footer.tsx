@@ -15,7 +15,7 @@ export function Footer() {
     <footer className="mt-auto border-t border-gray-200 bg-white">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6">
         <div className="text-center sm:text-left">
-          <p className="font-semibold text-gray-900">张润桐</p>
+          <p className="font-semibold text-gray-900">彤爱</p>
           <p className="mt-0.5 text-sm text-gray-500">全栈 AI 开发工程师 · 8年经验 · 3项发明专利</p>
         </div>
 
