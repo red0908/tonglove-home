@@ -128,11 +128,13 @@ class TokenOut(BaseModel):
 
 class RAGRequest(BaseModel):
     question: str = Field(..., min_length=1)
+    conversation_id: str = ""
 
 
 class RAGResponse(BaseModel):
     answer: str
     sources: List[str] = []
+    conversation_id: str = ""
 
 
 class AgentRequest(BaseModel):

@@ -118,15 +118,17 @@ export interface WorkExperience {
 // ========================
 export interface RagRequest {
   question: string
+  conversation_id?: string
 }
 
 export interface RagResponse {
   answer: string
   sources: string[]
+  conversation_id: string
 }
 
 export interface AgentRequest {
-  user_role: 'decision_maker' | 'user' | 'observer'
+  user_role: '决策者' | '使用者' | '观望者'
 }
 
 export interface AgentResponse {

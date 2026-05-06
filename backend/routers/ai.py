@@ -4,66 +4,62 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-import models, schemas
+import schemas
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
 DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
-
-def _keyword_search(question: str, docs: list, top_k: int = 2) -> list:
-    """简易关键词检索：按问题词在文档中的命中数排序，返回 top_k。"""
-    q_words = set(question.lower().split())
-    scored = []
-    for doc in docs:
-        text = (doc.title + " " + doc.content).lower()
-        score = sum(1 for w in q_words if w in text)
-        scored.append((score, doc))
-    scored.sort(key=lambda x: x[0], reverse=True)
-    return [doc for _, doc in scored[:top_k] if _ > 0] or [doc for _, doc in scored[:top_k]]
+DIFY_API_KEY = os.getenv("DIFY_API_KEY", "")
+DIFY_API_URL = "https://api.dify.ai/v1/chat-messages"
 
 
 @router.post("/rag", response_model=schemas.RAGResponse)
-async def rag_query(payload: schemas.RAGRequest, db: Session = Depends(get_db)):
-    docs = db.query(models.KnowledgeDoc).all()
-    if not docs:
-        return schemas.RAGResponse(answer="知识库暂无内容，请先在管理后台添加文档。", sources=[])
-
-    top_docs = _keyword_search(payload.question, docs)
-    context = "\n\n".join(f"【{d.title}】\n{d.content}" for d in top_docs)
-    sources = [d.title for d in top_docs]
-
-    if not DEEPSEEK_API_KEY:
+async def rag_query(payload: schemas.RAGRequest):
+    if not DIFY_API_KEY:
         return schemas.RAGResponse(
-            answer=f"（AI Key 未配置，以下为检索到的原文）\n\n{context}",
-            sources=sources,
+            answer="AI 服务未配置，请联系管理员。",
+            sources=[],
+            conversation_id="",
         )
 
-    prompt = (
-        f"你是一个个人助理，请基于以下资料回答用户问题。\n\n"
-        f"资料：\n{context}\n\n"
-        f"问题：{payload.question}\n\n"
-        "请只根据资料回答，若资料无法回答则说'资料库中暂无相关信息'。"
-    )
-
     try:
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(
-                DEEPSEEK_API_URL,
-                headers={"Authorization": f"Bearer {DEEPSEEK_API_KEY}"},
+                DIFY_API_URL,
+                headers={
+                    "Authorization": f"Bearer {DIFY_API_KEY}",
+                    "Content-Type": "application/json",
+                },
                 json={
-                    "model": "deepseek-chat",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.3,
+                    k: v for k, v in {
+                        "inputs": {},
+                        "query": payload.question,
+                        "response_mode": "blocking",
+                        "conversation_id": payload.conversation_id or None,
+                        "user": "website-visitor",
+                    }.items() if v is not None
                 },
             )
             resp.raise_for_status()
-            answer = resp.json()["choices"][0]["message"]["content"]
+            data = resp.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=502, detail=f"Dify 服务调用失败: {e.response.text}")
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"AI 服务调用失败: {str(e)}")
 
-    return schemas.RAGResponse(answer=answer, sources=sources)
+    sources = []
+    retriever_resources = data.get("metadata", {}).get("retriever_resources", [])
+    for r in retriever_resources:
+        if r.get("document_name"):
+            sources.append(r["document_name"])
+
+    return schemas.RAGResponse(
+        answer=data["answer"],
+        sources=list(set(sources)),
+        conversation_id=data.get("conversation_id", ""),
+    )
 
 
 @router.post("/agent/demo", response_model=schemas.AgentResponse)
